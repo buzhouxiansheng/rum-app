@@ -8,17 +8,25 @@ export enum Status {
   FAILED,
 }
 
+export enum FilterType {
+  ALL,
+  FOLLOW,
+  ME,
+}
+
 export function createActiveGroupStore() {
   let electronStore: Store;
 
   return {
+    loading: false,
+
     id: '',
 
     ids: <string[]>[],
 
     map: <{ [key: string]: IGroup }>{},
 
-    contentTrxIds: <string[]>[],
+    _contentTrxIds: <string[]>[],
 
     contentMap: <{ [key: string]: IContentItem }>{},
 
@@ -30,10 +38,24 @@ export function createActiveGroupStore() {
 
     rearContentTimeStamp: 0,
 
+    filterType: FilterType.ALL,
+
+    filterUserIds: [] as string[],
+
     electronStoreName: '',
 
     get isActive() {
       return !!this.id;
+    },
+
+    get contentTrxIds() {
+      if (this.filterType === FilterType.ALL) {
+        return this._contentTrxIds;
+      }
+      return this._contentTrxIds.filter((id) => {
+        const { Publisher } = this.contentMap[id];
+        return !Publisher || this.filterUserIds.includes(Publisher);
+      });
     },
 
     get contentTotal() {
@@ -69,7 +91,7 @@ export function createActiveGroupStore() {
     },
 
     clearAfterGroupChanged() {
-      this.contentTrxIds = [];
+      this._contentTrxIds = [];
       this.contentMap = {};
       this.justAddedContentTrxId = '';
       this.latestContentTimeStampSet.clear();
@@ -88,7 +110,7 @@ export function createActiveGroupStore() {
           this.contentMap[content.TrxId] = content;
         }
       } else {
-        this.contentTrxIds.unshift(content.TrxId);
+        this._contentTrxIds.unshift(content.TrxId);
         this.contentMap[content.TrxId] = content;
       }
     },
@@ -133,6 +155,18 @@ export function createActiveGroupStore() {
         []) as IContentItem[];
       failedContents.push(content);
       electronStore.set(`failedContents_${this.id}`, failedContents);
+    },
+
+    setFilterType(filterType: FilterType) {
+      this.filterType = filterType;
+    },
+
+    setFilterUserIds(userIds: string[]) {
+      this.filterUserIds = userIds;
+    },
+
+    setLoading(value: boolean) {
+      this.loading = value;
     },
   };
 }

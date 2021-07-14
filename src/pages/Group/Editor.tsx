@@ -130,7 +130,7 @@ export default observer(() => {
   };
 
   return (
-    <div className="rounded-12 bg-white px-6 pt-5 pb-4 w-[600px] box-border">
+    <div className="rounded-12 bg-white pt-5 pb-4 px-6 w-full box-border">
       <div className="relative">
         <TextareaAutosize
           className="w-full textarea-autosize"
